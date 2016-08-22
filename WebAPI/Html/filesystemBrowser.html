@@ -1,0 +1,94 @@
+﻿<!DOCTYPE html>
+<html ng-app="myApp">
+<head>
+    <title></title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <style>
+        th, td {
+            vertical-align:middle;
+            text-align:center;
+        }
+
+    </style>
+</head>
+<body ng-controller="filesystemController">
+    <div class="row">
+        <div class="col-md-10 col-md-offset-1">
+            <table class="table table-bordered">
+                <tr class="active">
+                    <th>Less 10Mb</th>
+                    <th>10Mb-50Mb</th>
+                    <th>More 100Mb</th>
+                </tr>
+                <tr>
+                    <td>{{result.numberOfFilesWithSizeLessThan10mb}}</td>
+                    <td>{{result.numberOfFilesWithSizeFrom10To50mb}}</td>
+                    <td>{{result.numberOfFilesWithSizeMoreThan100mb}}</td>
+                </tr>
+            </table>
+        </div>
+        <div class="col-md-10 col-md-offset-1">
+            <p><b>Current path: </b>{{result.currentPath}}</p>
+        </div>
+        <div class="col-md-10 col-md-offset-1">
+            <a href="" ng-click="goToParentDir()">..</a>
+        </div>
+        <div class="col-md-10 col-md-offset-1">
+            <p ng-repeat="childFolderName in result.childFoldersNames"><a href="" ng-click="goToChildDir(childFolderName)">{{childFolderName}}</a></p>
+        </div>
+        <div class="col-md-10 col-md-offset-1">
+            <p ng-repeat="fileName in result.fileNames">{{fileName}}</p>
+        </div>
+
+    </div>
+    <script type="text/javascript" src="https://code.jquery.com/jquery-3.1.0.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.8/angular.min.js"></script>
+
+    <script type="text/javascript">
+        var myApp = angular.module('myApp', []);
+        myApp.controller('filesystemController', function ($scope, $http) {
+            var xsrf = { directoryPath: "All local HDDs" };
+            $http({
+                method: 'POST',
+                url: 'http://localhost:49677/api/Values/Post',
+                data: xsrf,
+                headers: { 'Content-Type': 'application/json' }
+            }).success(function (response) {
+                $scope.result = response;
+            });
+
+            $scope.goToParentDir = function () {
+                var xsrf = { directoryPath: $scope.result.parentPath + "\\" };
+                $http({
+                    method: 'POST',
+                    url: 'http://localhost:49677/api/Values/Post',
+                    data: xsrf,
+                    headers: { 'Content-Type': 'application/json' }
+                }).success(function (response) {
+                    $scope.result = response;
+                });
+            };
+
+            $scope.goToChildDir = function (childFolderName) {
+                var xsrf = {
+                    directoryPath: $scope.result.currentPath != 'All local HDDs' ? $scope.result.currentPath + childFolderName + "\\" : childFolderName,
+                    parentDirectoryPath: $scope.result.currentPath
+                };
+
+                $http({
+                    method: 'POST',
+                    url: 'http://localhost:49677/api/Values/Post',
+                    data: xsrf,
+                    headers: { 'Content-Type': 'application/json' }
+                }).success(function (response) {
+                    $scope.result = response;
+                });
+            };
+
+
+        });
+    </script>
+</body>
+</html>
